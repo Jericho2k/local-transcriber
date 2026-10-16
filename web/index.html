@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; connect-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'none'; media-src 'none'; object-src 'none'; form-action 'none'">
+  <title>Local Transcriber</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="topbar" aria-label="Application header">
+    <a class="brand" href="#main-content">
+      <span class="brand-mark" aria-hidden="true">
+        <img src="assets/mark.svg" alt="">
+      </span>
+      <span class="brand-copy">
+        <strong>Local Transcriber</strong>
+        <span>Private offline transcription</span>
+      </span>
+    </a>
+    <div class="topbar-actions">
+      <span id="setup-status" class="status-pill status-neutral" aria-live="polite">Checking setup</span>
+      <button id="refresh-button" class="icon-button" type="button" aria-label="Reload jobs">Refresh</button>
+    </div>
+  </header>
+
+  <div id="fatal-error" class="notice error fatal hidden" role="alert"></div>
+
+  <main id="main-content" class="shell" tabindex="-1">
+    <aside class="sidebar" aria-labelledby="history-title">
+      <div class="section-heading">
+        <h2 id="history-title">History</h2>
+        <button id="clear-selection" class="text-button" type="button" title="Show newest job">Reset selection</button>
+      </div>
+      <p id="history-meta" class="muted" aria-live="polite">Loading local jobs…</p>
+      <ul id="history-list" class="history-list" role="list"></ul>
+    </aside>
+
+    <section class="workspace" aria-labelledby="source-title">
+      <section class="source-panel">
+        <div class="panel-heading">
+          <h1 id="source-title">Transcribe audio or video</h1>
+          <p>All processing stays on this machine. One active transcription is allowed at a time.</p>
+        </div>
+
+        <form id="transcription-form" novalidate>
+          <div class="field">
+            <label for="source">Source file or YouTube URL</label>
+            <div class="input-row">
+              <input id="source" name="source" type="text" spellcheck="false" autocomplete="off" required placeholder="C:\media\audio.mp4 or HTTPS YouTube URL" aria-describedby="source-help">
+              <button id="choose-file" type="button">Choose file</button>
+            </div>
+            <p id="source-help" class="field-help">Choose a recording or paste one YouTube link.</p>
+          </div>
+
+          <div class="settings-grid">
+            <div class="field">
+              <label for="language">Language</label>
+              <select id="language" name="language">
+                <option value="auto" selected>Auto detect</option>
+                <option value="en">English</option>
+                <option value="ru">Russian</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="device">Device</label>
+              <select id="device" name="device">
+                <option value="auto" selected>Auto</option>
+                <option value="cuda">CUDA</option>
+                <option value="cpu">CPU</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button id="start-button" class="button primary" type="submit">Start transcription</button>
+            <button id="stop-button" class="button secondary" type="button" disabled>Stop</button>
+            <span id="active-summary" class="active-summary" aria-live="polite"></span>
+          </div>
+        </form>
+
+        <div id="request-status" class="notice notice-info hidden" role="status" aria-live="polite"></div>
+        <div id="request-error" class="notice notice-error hidden" role="alert" aria-live="assertive"></div>
+      </section>
+
+      <section class="job-panel" aria-labelledby="job-title">
+        <div class="job-header">
+          <h2 id="job-title">No job selected</h2>
+          <span id="job-status-pill" class="status-pill status-neutral">Idle</span>
+        </div>
+
+        <div class="progress-block" aria-labelledby="progress-label">
+          <div class="progress-label-row">
+            <span id="progress-label">Progress</span>
+            <span id="progress-text" aria-live="polite">0%</span>
+          </div>
+          <progress id="progress-bar" max="100" value="0" aria-labelledby="progress-label"></progress>
+          <p id="progress-detail" class="muted">No completed parts yet.</p>
+        </div>
+
+        <dl class="metadata-grid">
+          <div>
+            <dt>Source</dt>
+            <dd id="job-source">—</dd>
+          </div>
+          <div>
+            <dt>Language</dt>
+            <dd id="job-language">—</dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd id="job-created">—</dd>
+          </div>
+          <div>
+            <dt>Device</dt>
+            <dd id="job-device">—</dd>
+          </div>
+        </dl>
+
+        <div id="job-error" class="notice notice-error hidden" role="alert"></div>
+
+        <div class="export-row" aria-label="Export actions">
+          <button class="button secondary" type="button" data-format="txt" disabled>Text file</button>
+          <button class="button secondary" type="button" data-format="timestamps" disabled>Timestamps</button>
+          <button class="button secondary" type="button" data-format="srt" disabled>Subtitles</button>
+          <button class="button secondary" type="button" data-format="json" disabled>JSON report</button>
+          <button id="open-folder" class="button secondary" type="button" disabled>Open folder</button>
+        </div>
+
+        <section class="transcript-card" aria-labelledby="preview-title">
+          <h3 id="preview-title">Transcript preview</h3>
+          <p id="preview" class="preview" aria-live="polite">No transcript is available for the selected job yet.</p>
+        </section>
+
+        <details id="logs-details" class="logs">
+          <summary>Logs</summary>
+          <ol id="log-lines" class="log-lines"></ol>
+          <p id="logs-empty" class="muted">No log messages have been reported.</p>
+        </details>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

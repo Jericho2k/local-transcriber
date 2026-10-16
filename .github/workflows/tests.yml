@@ -1,0 +1,25 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: windows-latest
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Core and local API tests
+        run: python -m unittest discover -v
+      - name: Syntax and core smoke checks
+        run: |
+          python -m py_compile app.py ui.py install.py
+          python app.py --self-test
